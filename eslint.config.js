@@ -8,5 +8,5 @@ export default tseslint.config(
   js.configs.recommended,
   tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },
-  eslintConfigPrettier,
+  eslintConfigPrettier
 );

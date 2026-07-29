@@ -181,13 +181,13 @@ async function main() {
   const description = await ask("Description");
   const author = await ask('Author (e.g. "Your Name <you@example.com>")');
   const gitUrlRaw = await ask(
-    "GitHub repository URL (https://github.com/owner/repo)",
+    "GitHub repository URL (https://github.com/owner/repo)"
   );
   const gitUrl = normalizeGitUrl(gitUrlRaw);
 
   const license = await ask(
     "License SPDX identifier (e.g. MIT, ISC, Apache-2.0)",
-    "MIT",
+    "MIT"
   );
 
   const keywordsRaw = await ask("Keywords (comma-separated)");
@@ -198,11 +198,11 @@ async function main() {
 
   const pm = await ask(
     "Package manager (npm / pnpm / yarn / bun)",
-    detectManager(),
+    detectManager()
   );
   if (!VALID_MANAGERS.has(pm)) {
     console.error(
-      `Unknown package manager "${pm}". Choose one of: npm, pnpm, yarn, bun.`,
+      `Unknown package manager "${pm}". Choose one of: npm, pnpm, yarn, bun.`
     );
     if (interactive) rl.close();
     process.exit(1);
@@ -298,10 +298,10 @@ async function main() {
   console.log("  4. Review README.md and CONTRIBUTING.md");
   console.log("  5. Delete scripts/setup.js if you no longer need it");
   console.log(
-    "  6. Configure npm trusted publishing for your package on npmjs.com",
+    "  6. Configure npm trusted publishing for your package on npmjs.com"
   );
   console.log(
-    "     (Settings -> Publishing access -> Trusted publishers -> GitHub)",
+    "     (Settings -> Publishing access -> Trusted publishers -> GitHub)"
   );
   console.log("");
 }
