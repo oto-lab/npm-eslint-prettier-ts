@@ -7,6 +7,10 @@ on:
         description: 'Version to release: a semver bump (patch/minor/major/prerelease) or an explicit version (e.g. 0.1.0)'
         required: true
         default: patch
+      dist_tag:
+        description: 'npm dist-tag to publish under. Leave empty to auto-detect: the prerelease identifier (e.g. "beta" from 12.0.0-beta.0), or "latest" for a stable version.'
+        required: false
+        default: ''
 
 # Trusted publishing: npm authenticates this workflow via OIDC, so no NPM_TOKEN
 # secret is needed. Configure the link on npmjs.com first:
@@ -42,10 +46,24 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+          if [[ "$NEW" == *-* ]]; then
+            REST="${NEW#*-}"
+            PRERELEASE_ID="${REST%%.*}"
+          else
+            PRERELEASE_ID=""
+          fi
+
+          TAG="${{ inputs.dist_tag }}"
+          if [ -z "$TAG" ]; then
+            if [ -n "$PRERELEASE_ID" ]; then TAG="$PRERELEASE_ID"; else TAG="latest"; fi
+          fi
+          echo "npm_tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$([ "$TAG" = "latest" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
       # Trusted publishing: no NODE_AUTH_TOKEN — npm exchanges the OIDC token
       # issued by GitHub for a short-lived publish credential.
       - run: npm install -g npm@11
-      - run: npm publish --access public --provenance
+      - run: npm publish --access public --provenance --tag "${{ steps.bump.outputs.npm_tag }}"
 
       - name: Commit, tag and push
         run: |
@@ -63,4 +81,8 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ steps.bump.outputs.version }}" --title "${{ steps.bump.outputs.version }}" --generate-notes
+        run: |
+          gh release create "${{ steps.bump.outputs.version }}" \
+            --title "${{ steps.bump.outputs.version }}" \
+            --generate-notes \
+            ${{ steps.bump.outputs.prerelease == 'true' && '--prerelease' || '' }}
