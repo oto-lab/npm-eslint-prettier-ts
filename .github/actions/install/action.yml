@@ -1,0 +1,37 @@
+name: Install dependencies
+description: Install from the project's lockfile with the selected Node.js version
+inputs:
+  node-version:
+    description: Node.js version to install
+    required: true
+outputs:
+  manager:
+    description: Package manager used to install dependencies
+    value: ${{ steps.lockfile.outputs.manager }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        package-manager-cache: false
+    - id: lockfile
+      shell: bash
+      run: node scripts/package-manager.js >> "$GITHUB_OUTPUT"
+    - if: steps.lockfile.outputs.manager == 'pnpm'
+      uses: pnpm/action-setup@v6
+      with:
+        version: ${{ steps.lockfile.outputs.pnpm-fallback }}
+    - if: steps.lockfile.outputs.manager == 'bun'
+      uses: oven-sh/setup-bun@v2
+    - if: steps.lockfile.outputs.manager == 'yarn'
+      shell: bash
+      run: corepack enable yarn
+    - if: steps.lockfile.outputs.yarn-classic-fallback == 'true'
+      shell: bash
+      run: corepack install --global yarn@1.22.22
+    - shell: bash
+      env:
+        PACKAGE_MANAGER: ${{ steps.lockfile.outputs.manager }}
+        COREPACK_ENABLE_AUTO_PIN: "0"
+      run: bash scripts/install.sh

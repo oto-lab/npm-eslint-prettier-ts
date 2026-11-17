@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: typescript
+    groups:
+      npm:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directories: ["/", "/.github/actions/install"]
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

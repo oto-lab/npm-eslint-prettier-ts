@@ -1,20 +1,36 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches: [main, release/*]
+    branches: [main, "release/**"]
   pull_request:
-    branches: [main, release/*]
+    branches: [main, "release/**"]
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node-version: [22, 24]
     steps:
-      - uses: actions/checkout@v4
-<setup-steps>
-      - run: <pm> run ci
-      - run: <pm> run typecheck
-      - run: <pm> run test
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - id: install
+        uses: ./.github/actions/install
+        with:
+          node-version: ${{ matrix.node-version }}
+      - env:
+          PACKAGE_MANAGER: ${{ steps.install.outputs.manager }}
+        run: bash scripts/check.sh
+      - env:
+          PACKAGE_MANAGER: ${{ steps.install.outputs.manager }}
+        run: '"$PACKAGE_MANAGER" run build'
+      - if: matrix.node-version == 24
+        env:
+          PACKAGE_MANAGER: ${{ steps.install.outputs.manager }}
+        run: '"$PACKAGE_MANAGER" run test:template'
